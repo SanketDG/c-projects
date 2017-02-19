@@ -53,8 +53,6 @@ int main(int argc, char *argv[]) {
 
     int server_sock, status;
 
-    ntp_packet packet;
-
     struct addrinfo hints, *servinfo, *ap;
 
     socklen_t addrlen = sizeof(struct sockaddr_storage);
@@ -66,18 +64,15 @@ int main(int argc, char *argv[]) {
 
     server = argv[1]; // if it is supplied as argument
 
-    if(argc > 2 && argc < 4) {
+    if(argc == 3) {
 
         // Port is also passed in as argument
         port = argv[2];
     }
 
-    memset(&packet, 0, sizeof(ntp_packet));
-    packet.flags = NTP_FLAGS; // populate the socket
+    ntp_packet packet = { .flags = NTP_FLAGS }; // populate the struct
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_DGRAM;
+    hints = (struct addrinfo) { .ai_family = AF_UNSPEC, .ai_socktype = SOCK_DGRAM };
 
     // Get the info of the NTP server
 
@@ -102,14 +97,14 @@ int main(int argc, char *argv[]) {
 
     // Send the structure to the server
 
-    if((status = sendto(server_sock, &packet, sizeof(ntp_packet), 0, ap->ai_addr, addrlen)) == -1) {
+    if((status = sendto(server_sock, &packet, sizeof(packet), 0, ap->ai_addr, addrlen)) == -1) {
         perror("sendto() error");
         exit(2);
     }
 
     // Send the structure to the server
 
-    if((status = recvfrom(server_sock, &packet, sizeof(ntp_packet), 0, ap->ai_addr, &addrlen)) == -1) {
+    if((status = recvfrom(server_sock, &packet, sizeof(packet), 0, ap->ai_addr, &addrlen)) == -1) {
         perror("recvfrom() error");
         exit(2);
     }
